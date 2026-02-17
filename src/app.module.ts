@@ -2,6 +2,14 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HealthModule } from './modules/health/health.module';
+import { UsersModule } from './modules/users/users.module';
+import { ProjectsModule } from './modules/projects/projects.module';
+import { ProjectMembersModule } from './modules/project-members/project-members.module';
+import { BoardsModule } from './modules/boards/boards.module';
+import { IssuesModule } from './modules/issues/issues.module';
+import { SprintsModule } from './modules/sprints/sprints.module';
+import { CommentsModule } from './modules/comments/comments.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -25,6 +33,16 @@ import { HealthModule } from './modules/health/health.module';
 
     // Feature modules
     HealthModule,
+
+    // Domain modules
+    UsersModule,
+    ProjectsModule,
+    ProjectMembersModule,
+    BoardsModule,
+    IssuesModule,
+    SprintsModule,
+    CommentsModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],
