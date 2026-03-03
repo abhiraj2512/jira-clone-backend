@@ -10,6 +10,7 @@ import { IssuesModule } from './modules/issues/issues.module';
 import { SprintsModule } from './modules/sprints/sprints.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     SprintsModule,
     CommentsModule,
     NotificationsModule,
+    ActivityLogModule,
   ],
   controllers: [],
   providers: [],
