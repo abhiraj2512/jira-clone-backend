@@ -11,6 +11,7 @@ import { SprintsModule } from './modules/sprints/sprints.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ActivityLogModule } from './modules/activity-log/activity-log.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ActivityLogModule } from './modules/activity-log/activity-log.module';
     CommentsModule,
     NotificationsModule,
     ActivityLogModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
