@@ -21,6 +21,24 @@ export class ProjectsService {
         };
     }
 
+    async getUserProjects(userId: string): Promise<Partial<Project>[]> {
+        const members = await this.projectMemberRepository.find({
+            where: { userId },
+            relations: { project: true },
+            select: {
+                id: true,
+                project: {
+                    id: true,
+                    name: true,
+                    key: true,
+                    description: true,
+                    createdAt: true,
+                },
+            },
+        });
+        return members.map(m => m.project);
+    }
+
     async createProject(userId: string, dto: CreateProjectDto): Promise<Project> {
         const existingProject = await this.projectsRepository.findOne({ where: { key: dto.key } });
         if (existingProject) {

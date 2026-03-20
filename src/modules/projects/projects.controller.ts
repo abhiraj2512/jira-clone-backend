@@ -11,8 +11,9 @@ export class ProjectsController {
     constructor(private readonly projectsService: ProjectsService) { }
 
     @Get()
-    getStatus() {
-        return this.projectsService.getStatus();
+    @UseGuards(JwtAuthGuard)
+    async getUserProjects(@Request() req: any) {
+        return this.projectsService.getUserProjects(req.user.userId);
     }
 
     @Post()
