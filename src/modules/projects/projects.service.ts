@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
@@ -37,6 +37,27 @@ export class ProjectsService {
             },
         });
         return members.map(m => m.project);
+    }
+
+    async getProjectById(userId: string, projectId: string): Promise<Partial<Project>> {
+        const isMember = await this.projectMemberRepository.findOne({
+            where: { userId, projectId },
+        });
+
+        if (!isMember) {
+            throw new ForbiddenException('You are not a member of this project');
+        }
+
+        const project = await this.projectsRepository.findOne({
+            where: { id: projectId },
+            select: ['id', 'name', 'key', 'description', 'createdAt'],
+        });
+
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        return project;
     }
 
     async createProject(userId: string, dto: CreateProjectDto): Promise<Project> {
