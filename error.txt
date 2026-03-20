@@ -1,0 +1,172 @@
+﻿
+> jira-clone-backend@0.0.1 start
+> nest start
+
+[Nest] 18732  - 20/03/2026, 1:13:43 pm     LOG [NestFactory] Starting Nest application...
+[Nest] 18732  - 20/03/2026, 1:13:43 pm     LOG [InstanceLoader] AppModule dependencies initialized +62ms
+[Nest] 18732  - 20/03/2026, 1:13:43 pm     LOG [InstanceLoader] TypeOrmModule dependencies initialized +0ms
+[Nest] 18732  - 20/03/2026, 1:13:43 pm     LOG [InstanceLoader] PassportModule dependencies initialized +0ms
+[Nest] 18732  - 20/03/2026, 1:13:43 pm     LOG [InstanceLoader] ConfigHostModule dependencies initialized +1ms
+node.exe : [Nest] 
+18732  - 
+20/03/2026, 
+1:13:43 pm   
+ERROR [Ex
+ceptionHandler] Un
+knownDependenciesExcept
+ion [Error]: Nest 
+can't resolve 
+dependencies of the 
+ProjectRoleGuard 
+(Reflector, ?). Please 
+make sure that the 
+argument "ProjectMember
+Repository" at index 
+[1] is available in 
+the ProjectsModule 
+context.
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: ([Nest] 1   
+ 87...Module contex    
+t.:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+
+Potential solutions:
+- Is ProjectsModule a 
+valid NestJS module?
+- If "ProjectMemberRepo
+sitory" is a provider, 
+is it part of the 
+current ProjectsModule?
+- If "ProjectMemberRepo
+sitory" is exported 
+from a separate 
+@Module, is that 
+module imported within 
+ProjectsModule?
+  @Module({
+    imports: [ /* the 
+Module containing "Proj
+ectMemberRepository" 
+*/ ]
+  })
+
+For more common 
+dependency resolution 
+issues, see: https://do
+cs.nestjs.com/faq/commo
+n-errors
+    at Injector.lookupC
+omponentInParentModules
+ (C:\Users\Abhinan
+dan\OneDrive\Desktop\MU
+LTII-TENET PROJECT\jira
+-clone-backend\nod
+e_modules\@nestjs\c
+ore\injector\injec
+tor.js:290:19)[39
+m
+    at async 
+resolveParam (C:\U
+sers\Abhinandan\OneDriv
+e\Desktop\MULTII-TENET 
+PROJECT\jira-clone-back
+end\node_modules\
+[4m@nestjs\core\in
+jector\injector.js:140:
+38)
+    at async 
+Promise.all (index 1)
+    at async Injector.r
+esolveConstructorParams
+ (C:\Users\Abhinan
+dan\OneDrive\Desktop\MU
+LTII-TENET PROJECT\jira
+-clone-backend\nod
+e_modules\@nestjs\c
+ore\injector\injec
+tor.js:169:27)[39
+m
+    at async 
+Injector.loadInstance 
+[90m(C:\Users\Abhinanda
+n\OneDrive\Desktop\MULT
+II-TENET PROJECT\jira-c
+lone-backend\node_
+modules\@nestjs\cor
+e\injector\injecto
+r.js:75:13)
+    at async Injector.l
+oadInjectable (C:\
+Users\Abhinandan\OneDri
+ve\Desktop\MULTII-TENET
+ PROJECT\jira-clone-bac
+kend\node_modules\
+@nestjs\core\i
+njector\injector.js:99:
+9)
+    at async C:\Us
+ers\Abhinandan\OneDrive
+\Desktop\MULTII-TENET P
+ROJECT\jira-clone-backe
+nd\node_modules\[
+4m@nestjs\core\inj
+ector\instance-loader.j
+s:80:13
+    at async 
+Promise.all (index 1)
+    at async InstanceLo
+ader.createInstancesOfI
+njectables (C:\Use
+rs\Abhinandan\OneDrive\
+Desktop\MULTII-TENET PR
+OJECT\jira-clone-backen
+d\node_modules\[4
+m@nestjs\core\inje
+ctor\instance-loader.js
+:79:9)
+    at async C:\Us
+ers\Abhinandan\OneDrive
+\Desktop\MULTII-TENET P
+ROJECT\jira-clone-backe
+nd\node_modules\[
+4m@nestjs\core\inj
+ector\instance-loader.j
+s:41:13 {
+  type: 'ProjectRo
+leGuard',
+  context: {
+    index: 1,
+    dependencies: [
+      [class 
+Reflector],
+      'ProjectMemb
+erRepository'
+    ],
+    name: 'Project
+MemberRepository'
+  },
+  metadata: {
+    id: '00eb373f4
+8621149215d8'
+  },
+  moduleRef: {
+    id: '956499c2c
+e9d0707b00bb'
+  }
+}

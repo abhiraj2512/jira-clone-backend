@@ -7,6 +7,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from '../users/entities/user.entity';
+import { ProjectMember } from '../project-members/entities/project-member.entity';
+import { ProjectRoleGuard } from './guards/project-role.guard';
 
 @Module({
     imports: [
@@ -19,10 +21,10 @@ import { User } from '../users/entities/user.entity';
                 signOptions: { expiresIn: '1h' },
             }),
         }),
-        TypeOrmModule.forFeature([User]),
+        TypeOrmModule.forFeature([User, ProjectMember]),
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtStrategy],
-    exports: [AuthService, JwtModule],
+    providers: [AuthService, JwtStrategy, ProjectRoleGuard],
+    exports: [AuthService, JwtModule, ProjectRoleGuard],
 })
 export class AuthModule { }
