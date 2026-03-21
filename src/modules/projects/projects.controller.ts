@@ -36,6 +36,12 @@ export class ProjectsController {
         return this.projectsService.addMember(projectId, dto);
     }
 
+    @Get(':id/members')
+    @UseGuards(JwtAuthGuard)
+    async getProjectMembers(@Request() req: any, @Param('id') projectId: string) {
+        return this.projectsService.getProjectMembers(projectId, req.user.userId);
+    }
+
     @Get(':projectId/test')
     @UseGuards(JwtAuthGuard, ProjectRoleGuard)
     @Roles(ProjectRole.PROJECT_ADMIN)

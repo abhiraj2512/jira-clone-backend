@@ -108,4 +108,39 @@ export class ProjectsService {
 
         return await this.projectMemberRepository.save(newMember);
     }
+
+    async getProjectMembers(projectId: string, userId: string): Promise<{ userId: string; email: string; role: string }[]> {
+        const project = await this.projectsRepository.findOne({ where: { id: projectId } });
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        const isMember = await this.projectMemberRepository.findOne({
+            where: { userId, projectId },
+        });
+
+        if (!isMember) {
+            throw new ForbiddenException('You are not a member of this project');
+        }
+
+        const members = await this.projectMemberRepository.find({
+            where: { projectId },
+            relations: { user: true },
+            select: {
+                id: true,
+                role: true,
+                userId: true,
+                user: {
+                    id: true,
+                    email: true,
+                },
+            },
+        });
+
+        return members.map(m => ({
+            userId: m.userId,
+            email: m.user?.email ?? '',
+            role: m.role,
+        }));
+    }
 }
