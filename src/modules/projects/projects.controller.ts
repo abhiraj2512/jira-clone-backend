@@ -5,6 +5,7 @@ import { ProjectRoleGuard } from '../auth/guards/project-role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ProjectRole } from '../project-members/entities/project-member.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { AddProjectMemberDto } from './dto/add-project-member.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -26,6 +27,13 @@ export class ProjectsController {
     @UseGuards(JwtAuthGuard)
     async getProjectById(@Request() req: any, @Param('id') projectId: string) {
         return this.projectsService.getProjectById(req.user.userId, projectId);
+    }
+
+    @Post(':id/members')
+    @UseGuards(JwtAuthGuard, ProjectRoleGuard)
+    @Roles(ProjectRole.PROJECT_ADMIN)
+    async addMember(@Param('id') projectId: string, @Body() dto: AddProjectMemberDto) {
+        return this.projectsService.addMember(projectId, dto);
     }
 
     @Get(':projectId/test')

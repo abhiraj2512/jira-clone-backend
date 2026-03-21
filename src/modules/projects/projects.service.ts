@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { ProjectMember, ProjectRole } from '../project-members/entities/project-member.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { AddProjectMemberDto } from './dto/add-project-member.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -83,5 +84,28 @@ export class ProjectsService {
         await this.projectMemberRepository.save(member);
 
         return savedProject;
+    }
+
+    async addMember(projectId: string, dto: AddProjectMemberDto): Promise<ProjectMember> {
+        const project = await this.projectsRepository.findOne({ where: { id: projectId } });
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        const existingMember = await this.projectMemberRepository.findOne({
+            where: { userId: dto.userId, projectId },
+        });
+
+        if (existingMember) {
+            throw new ConflictException('User already a member');
+        }
+
+        const newMember = this.projectMemberRepository.create({
+            userId: dto.userId,
+            projectId,
+            role: dto.role,
+        });
+
+        return await this.projectMemberRepository.save(newMember);
     }
 }

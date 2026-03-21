@@ -30,7 +30,7 @@ export class ProjectRoleGuard implements CanActivate {
             throw new ForbiddenException('User not authenticated');
         }
 
-        const projectId = request.params?.projectId || request.body?.projectId;
+        const projectId = request.params?.projectId || request.params?.id || request.body?.projectId;
 
         if (!projectId) {
             throw new ForbiddenException('Project ID is required');
