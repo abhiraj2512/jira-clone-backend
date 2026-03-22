@@ -5,6 +5,7 @@ import { Project } from './entities/project.entity';
 import { ProjectMember, ProjectRole } from '../project-members/entities/project-member.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -14,13 +15,6 @@ export class ProjectsService {
         @InjectRepository(ProjectMember)
         private readonly projectMemberRepository: Repository<ProjectMember>,
     ) { }
-
-    getStatus(): object {
-        return {
-            module: 'projects',
-            status: 'initialized',
-        };
-    }
 
     async getUserProjects(userId: string): Promise<Partial<Project>[]> {
         const members = await this.projectMemberRepository.find({
@@ -84,6 +78,36 @@ export class ProjectsService {
         await this.projectMemberRepository.save(member);
 
         return savedProject;
+    }
+
+    async updateProject(projectId: string, dto: UpdateProjectDto): Promise<Partial<Project>> {
+        const project = await this.projectsRepository.findOne({ where: { id: projectId } });
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        if (dto.name) project.name = dto.name;
+        if (dto.description !== undefined) project.description = dto.description;
+
+        await this.projectsRepository.save(project);
+
+        return {
+            id: project.id,
+            name: project.name,
+            key: project.key,
+            description: project.description,
+            createdAt: project.createdAt,
+        };
+    }
+
+    async deleteProject(projectId: string): Promise<{ message: string }> {
+        const project = await this.projectsRepository.findOne({ where: { id: projectId } });
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        await this.projectsRepository.remove(project);
+        return { message: 'Project deleted successfully' };
     }
 
     async addMember(projectId: string, dto: AddProjectMemberDto): Promise<ProjectMember> {
