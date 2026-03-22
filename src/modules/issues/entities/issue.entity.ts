@@ -9,16 +9,7 @@ import {
     Index,
 } from 'typeorm';
 import { Project } from '../../projects/entities/project.entity';
-import { Board } from '../../boards/entities/board.entity';
-import { Sprint } from '../../sprints/entities/sprint.entity';
 import { User } from '../../users/entities/user.entity';
-
-export enum IssueType {
-    EPIC = 'EPIC',
-    STORY = 'STORY',
-    TASK = 'TASK',
-    BUG = 'BUG',
-}
 
 export enum IssueStatus {
     TODO = 'TODO',
@@ -30,13 +21,10 @@ export enum IssuePriority {
     LOW = 'LOW',
     MEDIUM = 'MEDIUM',
     HIGH = 'HIGH',
-    CRITICAL = 'CRITICAL',
 }
 
 @Entity('issues')
 @Index(['projectId'])
-@Index(['boardId'])
-@Index(['sprintId'])
 @Index(['reporterId'])
 @Index(['assigneeId'])
 @Index(['status'])
@@ -47,41 +35,31 @@ export class Issue {
     @Column({ type: 'uuid' })
     projectId: string;
 
-    @Column({ type: 'uuid' })
-    boardId: string;
-
-    @Column({ type: 'uuid', nullable: true })
-    sprintId: string;
-
-    @Column({ type: 'varchar', length: 20, unique: true })
-    issueKey: string;
-
     @Column({ type: 'varchar', length: 255 })
     title: string;
 
     @Column({ type: 'text', nullable: true })
-    description: string;
+    description: string | null;
 
-    @Column({ type: 'enum', enum: IssueType })
-    issueType: IssueType;
-
-    @Column({ type: 'enum', enum: IssueStatus, default: IssueStatus.TODO })
+    @Column({
+        type: 'enum',
+        enum: IssueStatus,
+        default: IssueStatus.TODO,
+    })
     status: IssueStatus;
 
-    @Column({ type: 'enum', enum: IssuePriority, default: IssuePriority.MEDIUM })
+    @Column({
+        type: 'enum',
+        enum: IssuePriority,
+        default: IssuePriority.MEDIUM,
+    })
     priority: IssuePriority;
 
     @Column({ type: 'uuid' })
     reporterId: string;
 
     @Column({ type: 'uuid', nullable: true })
-    assigneeId: string;
-
-    @Column({ type: 'int', nullable: true })
-    storyPoints: number;
-
-    @Column({ type: 'date', nullable: true })
-    dueDate: Date;
+    assigneeId: string | null;
 
     @CreateDateColumn({ type: 'timestamp' })
     createdAt: Date;
@@ -95,19 +73,11 @@ export class Issue {
     @JoinColumn({ name: 'projectId' })
     project: Project;
 
-    @ManyToOne(() => Board, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'boardId' })
-    board: Board;
-
-    @ManyToOne(() => Sprint, { nullable: true, onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'sprintId' })
-    sprint: Sprint;
-
     @ManyToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'reporterId' })
     reporter: User;
 
     @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'assigneeId' })
-    assignee: User;
+    assignee: User | null;
 }
