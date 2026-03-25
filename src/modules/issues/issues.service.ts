@@ -102,4 +102,55 @@ export class IssuesService {
 
         return await this.issueRepository.save(issue);
     }
+
+    async getIssueById(userId: string, issueId: string): Promise<Issue> {
+        const issue = await this.issueRepository.findOne({
+            where: { id: issueId },
+            select: ['id', 'title', 'description', 'status', 'priority', 'assigneeId', 'reporterId', 'createdAt', 'projectId'],
+        });
+
+        if (!issue) {
+            throw new NotFoundException('Issue not found');
+        }
+
+        const isMember = await this.projectMemberRepository.findOne({
+            where: { userId, projectId: issue.projectId },
+        });
+
+        if (!isMember) {
+            throw new ForbiddenException('You are not a member of this project');
+        }
+
+        return issue;
+    }
+
+    async updateIssueStatus(userId: string, issueId: string, status: IssueStatus): Promise<Issue> {
+        const issue = await this.issueRepository.findOne({ where: { id: issueId } });
+        if (!issue) {
+            throw new NotFoundException('Issue not found');
+        }
+
+        const isMember = await this.projectMemberRepository.findOne({
+            where: { userId, projectId: issue.projectId },
+        });
+
+        if (!isMember) {
+            throw new ForbiddenException('You are not a member of this project');
+        }
+
+        // Validate status transition
+        const allowedTransitions: Record<IssueStatus, IssueStatus[]> = {
+            [IssueStatus.TODO]: [IssueStatus.IN_PROGRESS],
+            [IssueStatus.IN_PROGRESS]: [IssueStatus.DONE, IssueStatus.TODO],
+            [IssueStatus.DONE]: [IssueStatus.IN_PROGRESS],
+        };
+
+        if (!allowedTransitions[issue.status].includes(status)) {
+            throw new BadRequestException(`Invalid status transition from ${issue.status} to ${status}`);
+        }
+
+        issue.status = status;
+        return await this.issueRepository.save(issue);
+    }
 }
+
