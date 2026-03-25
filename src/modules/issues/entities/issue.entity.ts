@@ -23,6 +23,13 @@ export enum IssuePriority {
     HIGH = 'HIGH',
 }
 
+export enum IssueType {
+    TASK = 'TASK',
+    BUG = 'BUG',
+    STORY = 'STORY',
+    EPIC = 'EPIC',
+}
+
 @Entity('issues')
 @Index(['projectId'])
 @Index(['reporterId'])
@@ -35,11 +42,28 @@ export class Issue {
     @Column({ type: 'uuid' })
     projectId: string;
 
+    @Column({ type: 'uuid', nullable: true })
+    boardId: string | null;
+
+    @Column({ type: 'uuid', nullable: true })
+    sprintId: string | null;
+
+    @Column({ type: 'varchar', length: 20, nullable: true })
+    issueKey: string | null;
+
     @Column({ type: 'varchar', length: 255 })
     title: string;
 
     @Column({ type: 'text', nullable: true })
     description: string | null;
+
+    @Column({
+        type: 'enum',
+        enum: IssueType,
+        default: IssueType.TASK,
+        nullable: true,
+    })
+    issueType: IssueType | null;
 
     @Column({
         type: 'enum',
