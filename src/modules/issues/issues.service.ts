@@ -138,7 +138,7 @@ export class IssuesService {
             throw new ForbiddenException('You are not a member of this project');
         }
 
-        // Validate status transition
+        
         const allowedTransitions: Record<IssueStatus, IssueStatus[]> = {
             [IssueStatus.TODO]: [IssueStatus.IN_PROGRESS],
             [IssueStatus.IN_PROGRESS]: [IssueStatus.DONE, IssueStatus.TODO],
