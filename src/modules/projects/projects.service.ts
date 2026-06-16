@@ -133,7 +133,7 @@ export class ProjectsService {
         return await this.projectMemberRepository.save(newMember);
     }
 
-    async getProjectMembers(projectId: string, userId: string): Promise<{ userId: string; email: string; role: string }[]> {
+    async getProjectMembers(projectId: string, userId: string): Promise<{ userId: string; email: string; fullName: string; role: string }[]> {
         const project = await this.projectsRepository.findOne({ where: { id: projectId } });
         if (!project) {
             throw new NotFoundException('Project not found');
@@ -157,6 +157,7 @@ export class ProjectsService {
                 user: {
                     id: true,
                     email: true,
+                    fullName: true,
                 },
             },
         });
@@ -164,6 +165,7 @@ export class ProjectsService {
         return members.map(m => ({
             userId: m.userId,
             email: m.user?.email ?? '',
+            fullName: m.user?.fullName ?? '',
             role: m.role,
         }));
     }
