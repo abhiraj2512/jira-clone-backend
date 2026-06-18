@@ -2,7 +2,7 @@ import { Injectable, ForbiddenException, NotFoundException, BadRequestException 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Issue, IssueStatus, IssuePriority } from './entities/issue.entity';
-import { ProjectMember } from '../project-members/entities/project-member.entity';
+import { ProjectMember, ProjectRole } from '../project-members/entities/project-member.entity';
 import { Project } from '../projects/entities/project.entity';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
@@ -151,6 +151,28 @@ export class IssuesService {
 
         issue.status = status;
         return await this.issueRepository.save(issue);
+    }
+
+    async deleteIssue(userId: string, issueId: string): Promise<{ message: string }> {
+        const issue = await this.issueRepository.findOne({ where: { id: issueId } });
+        if (!issue) {
+            throw new NotFoundException('Issue not found');
+        }
+
+        const membership = await this.projectMemberRepository.findOne({
+            where: { userId, projectId: issue.projectId },
+        });
+
+        if (!membership) {
+            throw new ForbiddenException('You are not a member of this project');
+        }
+
+        if (membership.role !== ProjectRole.PROJECT_ADMIN) {
+            throw new ForbiddenException('Only a Project Admin can delete issues');
+        }
+
+        await this.issueRepository.remove(issue);
+        return { message: 'Issue deleted successfully' };
     }
 }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, UseGuards, Request, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, UseGuards, Request, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { IssuesService } from './issues.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateIssueDto } from './dto/create-issue.dto';
@@ -56,6 +56,16 @@ export class IssuesController {
         @Body() dto: UpdateIssueStatusDto,
     ) {
         return this.issuesService.updateIssueStatus(req.user.userId, issueId, dto.status);
+    }
+
+    @Delete('issues/:id')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(JwtAuthGuard)
+    async deleteIssue(
+        @Request() req: any,
+        @Param('id') issueId: string,
+    ) {
+        return this.issuesService.deleteIssue(req.user.userId, issueId);
     }
 }
 
