@@ -15,13 +15,11 @@ import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
-    // Global configuration module
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
 
-    // TypeORM configuration
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DATABASE_HOST || 'localhost',
@@ -33,10 +31,7 @@ import { AuthModule } from './modules/auth/auth.module';
       synchronize: false,
     }),
 
-    // Feature modules
     HealthModule,
-
-    // Domain modules
     UsersModule,
     ProjectsModule,
     ProjectMembersModule,
