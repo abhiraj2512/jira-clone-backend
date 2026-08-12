@@ -6,6 +6,8 @@ import { ProjectMember, ProjectRole } from '../project-members/entities/project-
 import { Project } from '../projects/entities/project.entity';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
+import { ActivityLogService } from '../activity-log/activity-log.service';
+import { ActivityActionType } from '../activity-log/entities/activity-log.entity';
 
 @Injectable()
 export class IssuesService {
@@ -16,28 +18,21 @@ export class IssuesService {
         private readonly projectMemberRepository: Repository<ProjectMember>,
         @InjectRepository(Project)
         private readonly projectRepository: Repository<Project>,
-    ) { }
+        private readonly activityLogService: ActivityLogService,
+    ) {}
 
     async createIssue(userId: string, projectId: string, dto: CreateIssueDto): Promise<Issue> {
         const project = await this.projectRepository.findOne({ where: { id: projectId } });
-        if (!project) {
-            throw new NotFoundException('Project not found');
-        }
+        if (!project) throw new NotFoundException('Project not found');
 
-        const isMember = await this.projectMemberRepository.findOne({
-            where: { userId, projectId },
-        });
-        if (!isMember) {
-            throw new ForbiddenException('You are not a member of this project');
-        }
+        const isMember = await this.projectMemberRepository.findOne({ where: { userId, projectId } });
+        if (!isMember) throw new ForbiddenException('You are not a member of this project');
 
         if (dto.assigneeId) {
             const isAssigneeMember = await this.projectMemberRepository.findOne({
                 where: { userId: dto.assigneeId, projectId },
             });
-            if (!isAssigneeMember) {
-                throw new BadRequestException('Assignee is not a member of this project');
-            }
+            if (!isAssigneeMember) throw new BadRequestException('Assignee is not a member of this project');
         }
 
         const issue = this.issueRepository.create({
@@ -50,21 +45,25 @@ export class IssuesService {
             assigneeId: dto.assigneeId || null,
         }) as Issue;
 
-        return await this.issueRepository.save(issue);
+        const saved = await this.issueRepository.save(issue);
+
+        await this.activityLogService.recordActivity(
+            saved.id,
+            userId,
+            ActivityActionType.ISSUE_CREATED,
+            null,
+            { title: saved.title },
+        );
+
+        return saved;
     }
 
     async getProjectIssues(userId: string, projectId: string): Promise<Partial<Issue>[]> {
         const project = await this.projectRepository.findOne({ where: { id: projectId } });
-        if (!project) {
-            throw new NotFoundException('Project not found');
-        }
+        if (!project) throw new NotFoundException('Project not found');
 
-        const isMember = await this.projectMemberRepository.findOne({
-            where: { userId, projectId },
-        });
-        if (!isMember) {
-            throw new ForbiddenException('You are not a member of this project');
-        }
+        const isMember = await this.projectMemberRepository.findOne({ where: { userId, projectId } });
+        if (!isMember) throw new ForbiddenException('You are not a member of this project');
 
         return await this.issueRepository.find({
             where: { projectId },
@@ -75,32 +74,65 @@ export class IssuesService {
 
     async updateIssue(userId: string, issueId: string, dto: UpdateIssueDto): Promise<Issue> {
         const issue = await this.issueRepository.findOne({ where: { id: issueId } });
-        if (!issue) {
-            throw new NotFoundException('Issue not found');
-        }
+        if (!issue) throw new NotFoundException('Issue not found');
 
         const isMember = await this.projectMemberRepository.findOne({
             where: { userId, projectId: issue.projectId },
         });
-        if (!isMember) {
-            throw new ForbiddenException('You are not a member of this project');
-        }
+        if (!isMember) throw new ForbiddenException('You are not a member of this project');
 
         if (dto.assigneeId) {
             const isAssigneeMember = await this.projectMemberRepository.findOne({
                 where: { userId: dto.assigneeId, projectId: issue.projectId },
             });
-            if (!isAssigneeMember) {
-                throw new BadRequestException('Assignee is not a member of this project');
-            }
+            if (!isAssigneeMember) throw new BadRequestException('Assignee is not a member of this project');
         }
 
-        if (dto.title !== undefined) issue.title = dto.title;
-        if (dto.description !== undefined) issue.description = dto.description || null;
-        if (dto.priority !== undefined) issue.priority = dto.priority;
-        if (dto.assigneeId !== undefined) issue.assigneeId = dto.assigneeId || null;
+        // Capture old values for activity tracking
+        const oldTitle       = issue.title;
+        const oldDescription = issue.description;
+        const oldPriority    = issue.priority;
+        const oldAssigneeId  = issue.assigneeId;
 
-        return await this.issueRepository.save(issue);
+        if (dto.title !== undefined)       issue.title       = dto.title;
+        if (dto.description !== undefined) issue.description = dto.description || null;
+        if (dto.priority !== undefined)    issue.priority    = dto.priority;
+        if (dto.assigneeId !== undefined)  issue.assigneeId  = dto.assigneeId || null;
+
+        const updated = await this.issueRepository.save(issue);
+
+        // Record specific activity types based on what changed
+        const priorityChanged  = dto.priority !== undefined  && dto.priority !== oldPriority;
+        const assigneeChanged  = dto.assigneeId !== undefined && dto.assigneeId !== oldAssigneeId;
+        const titleOrDescChanged =
+            (dto.title !== undefined && dto.title !== oldTitle) ||
+            (dto.description !== undefined && dto.description !== oldDescription);
+
+        if (priorityChanged) {
+            await this.activityLogService.recordActivity(
+                updated.id, userId, ActivityActionType.PRIORITY_CHANGED,
+                { oldPriority },
+                { newPriority: dto.priority },
+            );
+        }
+
+        if (assigneeChanged) {
+            await this.activityLogService.recordActivity(
+                updated.id, userId, ActivityActionType.ASSIGNEE_CHANGED,
+                { oldAssigneeId },
+                { newAssigneeId: dto.assigneeId || null },
+            );
+        }
+
+        if (titleOrDescChanged) {
+            await this.activityLogService.recordActivity(
+                updated.id, userId, ActivityActionType.ISSUE_UPDATED,
+                null,
+                null,
+            );
+        }
+
+        return updated;
     }
 
     async getIssueById(userId: string, issueId: string): Promise<Issue> {
@@ -108,71 +140,70 @@ export class IssuesService {
             where: { id: issueId },
             select: ['id', 'title', 'description', 'status', 'priority', 'assigneeId', 'reporterId', 'createdAt', 'projectId'],
         });
-
-        if (!issue) {
-            throw new NotFoundException('Issue not found');
-        }
+        if (!issue) throw new NotFoundException('Issue not found');
 
         const isMember = await this.projectMemberRepository.findOne({
             where: { userId, projectId: issue.projectId },
         });
-
-        if (!isMember) {
-            throw new ForbiddenException('You are not a member of this project');
-        }
+        if (!isMember) throw new ForbiddenException('You are not a member of this project');
 
         return issue;
     }
 
     async updateIssueStatus(userId: string, issueId: string, status: IssueStatus): Promise<Issue> {
         const issue = await this.issueRepository.findOne({ where: { id: issueId } });
-        if (!issue) {
-            throw new NotFoundException('Issue not found');
-        }
+        if (!issue) throw new NotFoundException('Issue not found');
 
         const isMember = await this.projectMemberRepository.findOne({
             where: { userId, projectId: issue.projectId },
         });
+        if (!isMember) throw new ForbiddenException('You are not a member of this project');
 
-        if (!isMember) {
-            throw new ForbiddenException('You are not a member of this project');
-        }
-
-        
         const allowedTransitions: Record<IssueStatus, IssueStatus[]> = {
-            [IssueStatus.TODO]: [IssueStatus.IN_PROGRESS],
+            [IssueStatus.TODO]:        [IssueStatus.IN_PROGRESS],
             [IssueStatus.IN_PROGRESS]: [IssueStatus.DONE, IssueStatus.TODO],
-            [IssueStatus.DONE]: [IssueStatus.IN_PROGRESS],
+            [IssueStatus.DONE]:        [IssueStatus.IN_PROGRESS],
         };
 
         if (!allowedTransitions[issue.status].includes(status)) {
             throw new BadRequestException(`Invalid status transition from ${issue.status} to ${status}`);
         }
 
+        const oldStatus = issue.status;
         issue.status = status;
-        return await this.issueRepository.save(issue);
+        const updated = await this.issueRepository.save(issue);
+
+        await this.activityLogService.recordActivity(
+            updated.id, userId, ActivityActionType.STATUS_CHANGED,
+            { oldStatus },
+            { newStatus: status },
+        );
+
+        return updated;
     }
 
     async deleteIssue(userId: string, issueId: string): Promise<{ message: string }> {
         const issue = await this.issueRepository.findOne({ where: { id: issueId } });
-        if (!issue) {
-            throw new NotFoundException('Issue not found');
-        }
+        if (!issue) throw new NotFoundException('Issue not found');
 
         const membership = await this.projectMemberRepository.findOne({
             where: { userId, projectId: issue.projectId },
         });
-
-        if (!membership) {
-            throw new ForbiddenException('You are not a member of this project');
-        }
-
+        if (!membership) throw new ForbiddenException('You are not a member of this project');
         if (membership.role !== ProjectRole.PROJECT_ADMIN) {
             throw new ForbiddenException('Only a Project Admin can delete issues');
         }
+
+        // Record ISSUE_DELETED activity BEFORE removing the issue.
+        // The FK on activity_logs.issueId is now ON DELETE SET NULL,
+        // so this activity record will survive with issueId = null after deletion.
+        await this.activityLogService.recordActivity(
+            issueId, userId, ActivityActionType.ISSUE_DELETED,
+            { title: issue.title },
+            null,
+        );
 
         await this.issueRepository.remove(issue);
         return { message: 'Issue deleted successfully' };
     }
 }
-
