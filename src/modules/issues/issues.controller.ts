@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { UpdateIssueStatusDto } from './dto/update-issue-status.dto';
+import { UpdateIssueSprintDto } from './dto/update-issue-sprint.dto';
 
 
 @Controller()
@@ -58,6 +59,16 @@ export class IssuesController {
         return this.issuesService.updateIssueStatus(req.user.userId, issueId, dto.status);
     }
 
+    @Patch('issues/:id/sprint')
+    @UseGuards(JwtAuthGuard)
+    async updateIssueSprint(
+        @Request() req: any,
+        @Param('id') issueId: string,
+        @Body() dto: UpdateIssueSprintDto,
+    ) {
+        return this.issuesService.updateIssueSprint(req.user.userId, issueId, dto.sprintId);
+    }
+
     @Delete('issues/:id')
     @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
@@ -68,4 +79,3 @@ export class IssuesController {
         return this.issuesService.deleteIssue(req.user.userId, issueId);
     }
 }
-

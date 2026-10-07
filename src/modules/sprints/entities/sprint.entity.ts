@@ -5,10 +5,12 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     ManyToOne,
+    OneToMany,
     JoinColumn,
     Index,
 } from 'typeorm';
 import { Project } from '../../projects/entities/project.entity';
+import { Issue } from '../../issues/entities/issue.entity';
 
 export enum SprintStatus {
     PLANNED = 'PLANNED',
@@ -36,13 +38,13 @@ export class Sprint {
         type: 'text',
         nullable: true,
     })
-    goal: string;
+    goal: string | null;
 
-    @Column({ type: 'date' })
-    startDate: Date;
+    @Column({ type: 'date', nullable: true })
+    startDate: Date | null;
 
-    @Column({ type: 'date' })
-    endDate: Date;
+    @Column({ type: 'date', nullable: true })
+    endDate: Date | null;
 
     @Column({
         type: 'enum',
@@ -54,6 +56,9 @@ export class Sprint {
     @ManyToOne(() => Project, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'projectId' })
     project: Project;
+
+    @OneToMany(() => Issue, (issue) => issue.sprint)
+    issues: Issue[];
 
     @CreateDateColumn({
         type: 'timestamp',

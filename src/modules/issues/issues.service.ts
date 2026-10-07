@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Issue, IssueStatus, IssuePriority } from './entities/issue.entity';
 import { ProjectMember, ProjectRole } from '../project-members/entities/project-member.entity';
 import { Project } from '../projects/entities/project.entity';
+import { Sprint, SprintStatus } from '../sprints/entities/sprint.entity';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { ActivityLogService } from '../activity-log/activity-log.service';
@@ -18,6 +19,8 @@ export class IssuesService {
         private readonly projectMemberRepository: Repository<ProjectMember>,
         @InjectRepository(Project)
         private readonly projectRepository: Repository<Project>,
+        @InjectRepository(Sprint)
+        private readonly sprintRepository: Repository<Sprint>,
         private readonly activityLogService: ActivityLogService,
     ) {}
 
@@ -68,7 +71,7 @@ export class IssuesService {
         return await this.issueRepository.find({
             where: { projectId },
             order: { createdAt: 'DESC' },
-            select: ['id', 'title', 'status', 'priority', 'assigneeId', 'createdAt'],
+            select: ['id', 'title', 'status', 'priority', 'assigneeId', 'sprintId', 'createdAt', 'updatedAt'],
         });
     }
 
@@ -138,7 +141,7 @@ export class IssuesService {
     async getIssueById(userId: string, issueId: string): Promise<Issue> {
         const issue = await this.issueRepository.findOne({
             where: { id: issueId },
-            select: ['id', 'title', 'description', 'status', 'priority', 'assigneeId', 'reporterId', 'createdAt', 'projectId'],
+            select: ['id', 'title', 'description', 'status', 'priority', 'assigneeId', 'reporterId', 'createdAt', 'updatedAt', 'projectId', 'sprintId'],
         });
         if (!issue) throw new NotFoundException('Issue not found');
 
@@ -178,6 +181,53 @@ export class IssuesService {
             { oldStatus },
             { newStatus: status },
         );
+
+        return updated;
+    }
+
+    async updateIssueSprint(userId: string, issueId: string, sprintId: string | null): Promise<Issue> {
+        const issue = await this.issueRepository.findOne({ where: { id: issueId } });
+        if (!issue) throw new NotFoundException('Issue not found');
+
+        const membership = await this.projectMemberRepository.findOne({
+            where: { userId, projectId: issue.projectId },
+        });
+        if (!membership) throw new ForbiddenException('You are not a member of this project');
+        if (membership.role === ProjectRole.VIEWER) {
+            throw new ForbiddenException('Viewers cannot modify sprint assignment');
+        }
+
+        const oldSprintId = issue.sprintId;
+
+        if (sprintId !== null) {
+            // Validate sprint exists and belongs to same project
+            const sprint = await this.sprintRepository.findOne({ where: { id: sprintId } });
+            if (!sprint) throw new NotFoundException('Sprint not found');
+            if (sprint.projectId !== issue.projectId) {
+                throw new BadRequestException('Sprint does not belong to the same project');
+            }
+            if (sprint.status === SprintStatus.COMPLETED) {
+                throw new BadRequestException('Cannot add issue to a completed sprint');
+            }
+        }
+
+        issue.sprintId = sprintId;
+        const updated = await this.issueRepository.save(issue);
+
+        // Record activity
+        if (sprintId !== null && sprintId !== oldSprintId) {
+            await this.activityLogService.recordActivity(
+                updated.id, userId, ActivityActionType.ISSUE_ADDED_TO_SPRINT,
+                { oldSprintId },
+                { newSprintId: sprintId },
+            );
+        } else if (sprintId === null && oldSprintId !== null) {
+            await this.activityLogService.recordActivity(
+                updated.id, userId, ActivityActionType.ISSUE_REMOVED_FROM_SPRINT,
+                { oldSprintId },
+                { newSprintId: null },
+            );
+        }
 
         return updated;
     }

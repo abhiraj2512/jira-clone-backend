@@ -11,7 +11,7 @@ export const AppDataSource = new DataSource({
     username: process.env.DATABASE_USER || 'postgres',
     password: process.env.DATABASE_PASSWORD || '',
     database: process.env.DATABASE_NAME || 'jira_clone_db',
-    entities: ['dist/**/*.entity.js'],
-    migrations: ['dist/src/database/migrations/*.js'],
+    entities: ['src/**/*.entity.ts'],
+    migrations: ['src/database/migrations/*.ts'],
     synchronize: false,
 });

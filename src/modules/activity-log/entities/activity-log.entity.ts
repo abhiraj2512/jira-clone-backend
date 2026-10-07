@@ -23,6 +23,12 @@ export enum ActivityActionType {
     // Legacy values from initial migration (kept for backward compatibility)
     ASSIGNED         = 'ASSIGNED',
     SPRINT_CHANGED   = 'SPRINT_CHANGED',
+    // Sprint lifecycle events
+    SPRINT_CREATED          = 'SPRINT_CREATED',
+    SPRINT_STARTED          = 'SPRINT_STARTED',
+    SPRINT_COMPLETED        = 'SPRINT_COMPLETED',
+    ISSUE_ADDED_TO_SPRINT   = 'ISSUE_ADDED_TO_SPRINT',
+    ISSUE_REMOVED_FROM_SPRINT = 'ISSUE_REMOVED_FROM_SPRINT',
 }
 
 @Entity('activity_logs')

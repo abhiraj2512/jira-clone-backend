@@ -1,0 +1,487 @@
+{
+  "total": 96,
+  "pass": 96,
+  "fail": 0,
+  "results": [
+    {
+      "test": "DB: sprints table exists",
+      "pass": true,
+      "detail": "9 columns"
+    },
+    {
+      "test": "DB: sprint status enum",
+      "pass": true,
+      "detail": "PLANNED, ACTIVE, COMPLETED"
+    },
+    {
+      "test": "DB: issues.sprintId exists",
+      "pass": true,
+      "detail": "nullable=YES"
+    },
+    {
+      "test": "DB: sprints→projects FK",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "DB: issues→sprints FK",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "DB: activity enum has sprint types",
+      "pass": true,
+      "detail": "missing: none"
+    },
+    {
+      "test": "DB: all migrations applied",
+      "pass": true,
+      "detail": "11 migrations"
+    },
+    {
+      "test": "Sprint creation → 201",
+      "pass": true,
+      "detail": "status=201"
+    },
+    {
+      "test": "Sprint status = PLANNED",
+      "pass": true,
+      "detail": "PLANNED"
+    },
+    {
+      "test": "Sprint projectId correct",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Sprint name correct",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Sprint goal correct",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Sprint listing → 200",
+      "pass": true,
+      "detail": "count=1"
+    },
+    {
+      "test": "Created sprint persists in list",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Get single sprint → 200",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "test": "Update sprint → 200",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "test": "RBAC: ADMIN create ✅",
+      "pass": true,
+      "detail": "verified in Test 4"
+    },
+    {
+      "test": "RBAC: DEV create → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "RBAC: DEV view → 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "test": "RBAC: DEV edit → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "RBAC: DEV start → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "RBAC: DEV complete → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "RBAC: DEV delete → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "RBAC: VIEWER view → 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "test": "RBAC: VIEWER create → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "RBAC: VIEWER edit → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "RBAC: VIEWER start → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "RBAC: VIEWER complete → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "RBAC: VIEWER delete → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "Start planned sprint → 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "test": "Status = ACTIVE",
+      "pass": true,
+      "detail": "ACTIVE"
+    },
+    {
+      "test": "startDate populated",
+      "pass": true,
+      "detail": "2026-10-07"
+    },
+    {
+      "test": "Re-start active → 400",
+      "pass": true,
+      "detail": "400"
+    },
+    {
+      "test": "Start 2nd while active → 400",
+      "pass": true,
+      "detail": "400"
+    },
+    {
+      "test": "Only 1 ACTIVE sprint",
+      "pass": true,
+      "detail": "active=1"
+    },
+    {
+      "test": "Created 3 issues",
+      "pass": true,
+      "detail": "count=3"
+    },
+    {
+      "test": "Backlog endpoint → 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "test": "All 3 in backlog",
+      "pass": true,
+      "detail": "found 3/3"
+    },
+    {
+      "test": "Assign Issue A to sprint → 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "test": "Issue A sprintId set",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Issue A gone from backlog",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Remove Issue A from sprint → 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "test": "Issue A sprintId = null",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Issue A back in backlog",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Cross-project assign → 400",
+      "pass": true,
+      "detail": "400"
+    },
+    {
+      "test": "Sprint analytics: issueCount=3",
+      "pass": true,
+      "detail": "3"
+    },
+    {
+      "test": "Sprint analytics: completedCount=1",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "test": "Sprint analytics: ~33%",
+      "pass": true,
+      "detail": "33%"
+    },
+    {
+      "test": "Complete sprint → 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "test": "Status = COMPLETED",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "movedToBacklogCount = 2",
+      "pass": true,
+      "detail": "2"
+    },
+    {
+      "test": "Issue A (DONE) stays in sprint",
+      "pass": true,
+      "detail": "aaa6d2b4-1b3a-4f0a-907b-55f2aa4072fc"
+    },
+    {
+      "test": "Issue B (TODO) → backlog",
+      "pass": true,
+      "detail": "null"
+    },
+    {
+      "test": "Issue C (IN_PROGRESS) → backlog",
+      "pass": true,
+      "detail": "null"
+    },
+    {
+      "test": "Assign to completed sprint → 400",
+      "pass": true,
+      "detail": "400"
+    },
+    {
+      "test": "Start completed sprint → 400",
+      "pass": true,
+      "detail": "400"
+    },
+    {
+      "test": "Modify completed sprint → 400",
+      "pass": true,
+      "detail": "400"
+    },
+    {
+      "test": "Delete completed sprint → 400",
+      "pass": true,
+      "detail": "400"
+    },
+    {
+      "test": "Issues endpoint → 200",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Issues have sprintId field",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Status: TODO→IN_PROGRESS",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Status: IN_PROGRESS→DONE",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Status: DONE→IN_PROGRESS",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Activity: SPRINT_CREATED logged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Activity: SPRINT_STARTED logged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Activity: SPRINT_COMPLETED logged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Activity: ISSUE_ADDED_TO_SPRINT logged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Activity: ISSUE_REMOVED_FROM_SPRINT logged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Activity: ISSUE_CREATED still logged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Activity: STATUS_CHANGED still logged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Activity: has userId",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Activity: has timestamp",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "UI: Modal shows DONE vs Incomplete counts",
+      "pass": true,
+      "detail": "Verified in CompleteSprintModal.tsx"
+    },
+    {
+      "test": "UI: Explains incomplete → backlog",
+      "pass": true,
+      "detail": "Alert message confirms move-to-backlog"
+    },
+    {
+      "test": "UI: No unsupported future-sprint option",
+      "pass": true,
+      "detail": "Modal does NOT offer future-sprint rollover"
+    },
+    {
+      "test": "Backend: only supports move-to-backlog",
+      "pass": true,
+      "detail": "completeSprint sets sprintId=null on incomplete"
+    },
+    {
+      "test": "RBAC: DEV assign issue to sprint → 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "test": "RBAC: VIEWER assign issue → 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "test": "Persistence: sprints load",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Persistence: completed sprint persists",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Persistence: status preserved",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Persistence: issues load",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Network: health endpoint",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Auth login",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Project listing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Get project",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Members listing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Issues listing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Issue creation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Issue update",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Issue status transition",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Comment creation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Comment update",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Comment deletion",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Activity timeline",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "test": "Regression: Issue deletion",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

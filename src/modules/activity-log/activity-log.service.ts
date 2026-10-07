@@ -38,7 +38,7 @@ export class ActivityLogService {
      * Failures are caught and logged silently so they never break the primary operation.
      */
     async recordActivity(
-        issueId: string,
+        issueId: string | null,
         userId: string,
         actionType: ActivityActionType,
         oldValue?: Record<string, any> | null,

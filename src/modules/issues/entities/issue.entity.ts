@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Project } from '../../projects/entities/project.entity';
 import { User } from '../../users/entities/user.entity';
+import { Sprint } from '../../sprints/entities/sprint.entity';
 
 export enum IssueStatus {
     TODO = 'TODO',
@@ -35,6 +36,7 @@ export enum IssueType {
 @Index(['reporterId'])
 @Index(['assigneeId'])
 @Index(['status'])
+@Index(['sprintId'])
 export class Issue {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -104,4 +106,8 @@ export class Issue {
     @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'assigneeId' })
     assignee: User | null;
+
+    @ManyToOne(() => Sprint, (sprint) => sprint.issues, { nullable: true, onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'sprintId' })
+    sprint: Sprint | null;
 }
