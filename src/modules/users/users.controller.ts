@@ -29,4 +29,10 @@ export class UsersController {
     async findByEmail(@Query('email') email: string) {
         return this.usersService.findByEmail(email);
     }
+
+    @Get('search')
+    @UseGuards(JwtAuthGuard)
+    async searchUsers(@Query('query') query?: string) {
+        return this.usersService.searchUsers(query);
+    }
 }

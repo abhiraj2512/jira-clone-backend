@@ -6,9 +6,10 @@ import { ActivityLog } from './entities/activity-log.entity';
 import { Issue } from '../issues/entities/issue.entity';
 import { ProjectMember } from '../project-members/entities/project-member.entity';
 import { User } from '../users/entities/user.entity';
+import { Project } from '../projects/entities/project.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([ActivityLog, Issue, ProjectMember, User])],
+    imports: [TypeOrmModule.forFeature([ActivityLog, Issue, ProjectMember, User, Project])],
     controllers: [ActivityLogController],
     providers: [ActivityLogService],
     exports: [ActivityLogService],

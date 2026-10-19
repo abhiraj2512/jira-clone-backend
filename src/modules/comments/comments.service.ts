@@ -138,6 +138,11 @@ export class CommentsService {
         const issue = await this.requireIssue(comment.issueId);
         const member = await this.requireMembership(userId, issue.projectId);
 
+        // VIEWER cannot delete comments
+        if (member.role === ProjectRole.VIEWER) {
+            throw new ForbiddenException('Viewers cannot delete comments');
+        }
+
         // Allowed: comment author, or PROJECT_ADMIN (moderation)
         const isAuthor = comment.userId === userId;
         const isAdmin = member.role === ProjectRole.PROJECT_ADMIN;

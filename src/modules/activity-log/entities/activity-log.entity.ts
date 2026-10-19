@@ -29,6 +29,10 @@ export enum ActivityActionType {
     SPRINT_COMPLETED        = 'SPRINT_COMPLETED',
     ISSUE_ADDED_TO_SPRINT   = 'ISSUE_ADDED_TO_SPRINT',
     ISSUE_REMOVED_FROM_SPRINT = 'ISSUE_REMOVED_FROM_SPRINT',
+    // Member management events (Phase 9)
+    MEMBER_ADDED            = 'MEMBER_ADDED',
+    MEMBER_ROLE_CHANGED     = 'MEMBER_ROLE_CHANGED',
+    MEMBER_REMOVED          = 'MEMBER_REMOVED',
 }
 
 @Entity('activity_logs')

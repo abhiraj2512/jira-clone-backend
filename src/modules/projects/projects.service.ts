@@ -1,11 +1,24 @@
-import { Injectable, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { ProjectMember, ProjectRole } from '../project-members/entities/project-member.entity';
+import { User } from '../users/entities/user.entity';
+import { ActivityLogService } from '../activity-log/activity-log.service';
+import { ActivityActionType } from '../activity-log/entities/activity-log.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
+import { UpdateProjectMemberDto } from './dto/update-project-member.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+
+export interface ProjectMemberResponse {
+    id: string;
+    userId: string;
+    email: string;
+    fullName: string;
+    role: ProjectRole;
+    createdAt: Date;
+}
 
 @Injectable()
 export class ProjectsService {
@@ -14,6 +27,9 @@ export class ProjectsService {
         private readonly projectsRepository: Repository<Project>,
         @InjectRepository(ProjectMember)
         private readonly projectMemberRepository: Repository<ProjectMember>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+        private readonly activityLogService: ActivityLogService,
     ) { }
 
     async getUserProjects(userId: string): Promise<Partial<Project>[]> {
@@ -110,10 +126,15 @@ export class ProjectsService {
         return { message: 'Project deleted successfully' };
     }
 
-    async addMember(projectId: string, dto: AddProjectMemberDto): Promise<ProjectMember> {
+    async addMember(projectId: string, dto: AddProjectMemberDto, requestingUserId?: string): Promise<ProjectMemberResponse> {
         const project = await this.projectsRepository.findOne({ where: { id: projectId } });
         if (!project) {
             throw new NotFoundException('Project not found');
+        }
+
+        const targetUser = await this.userRepository.findOne({ where: { id: dto.userId } });
+        if (!targetUser) {
+            throw new NotFoundException('User not found');
         }
 
         const existingMember = await this.projectMemberRepository.findOne({
@@ -130,10 +151,152 @@ export class ProjectsService {
             role: dto.role,
         });
 
-        return await this.projectMemberRepository.save(newMember);
+        const saved = await this.projectMemberRepository.save(newMember);
+
+        if (requestingUserId) {
+            try {
+                await this.activityLogService.recordActivity(
+                    null,
+                    requestingUserId,
+                    ActivityActionType.MEMBER_ADDED,
+                    null,
+                    { memberUserId: dto.userId, role: dto.role, projectId },
+                );
+            } catch (err) {
+                console.error('[ProjectsService] Failed to record activity for addMember:', err);
+            }
+        }
+
+        return {
+            id: saved.id,
+            userId: saved.userId,
+            email: targetUser.email,
+            fullName: targetUser.fullName,
+            role: saved.role,
+            createdAt: saved.joinedAt,
+        };
     }
 
-    async getProjectMembers(projectId: string, userId: string): Promise<{ userId: string; email: string; fullName: string; role: string }[]> {
+    async updateMemberRole(
+        projectId: string,
+        memberIdOrUserId: string,
+        dto: UpdateProjectMemberDto,
+        requestingUserId?: string,
+    ): Promise<ProjectMemberResponse> {
+        const project = await this.projectsRepository.findOne({ where: { id: projectId } });
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        const member = await this.projectMemberRepository.findOne({
+            where: [
+                { id: memberIdOrUserId, projectId },
+                { userId: memberIdOrUserId, projectId },
+            ],
+            relations: { user: true },
+        });
+
+        if (!member) {
+            throw new NotFoundException('Project member not found');
+        }
+
+        // Safety check: Cannot demote the only Project Admin
+        if (member.role === ProjectRole.PROJECT_ADMIN && dto.role !== ProjectRole.PROJECT_ADMIN) {
+            const adminCount = await this.projectMemberRepository.count({
+                where: { projectId, role: ProjectRole.PROJECT_ADMIN },
+            });
+            if (adminCount <= 1) {
+                throw new BadRequestException(
+                    'Cannot change the role of the only Project Admin. A project must have at least one Project Admin.',
+                );
+            }
+        }
+
+        const oldRole = member.role;
+        member.role = dto.role;
+        const saved = await this.projectMemberRepository.save(member);
+
+        if (requestingUserId) {
+            try {
+                await this.activityLogService.recordActivity(
+                    null,
+                    requestingUserId,
+                    ActivityActionType.MEMBER_ROLE_CHANGED,
+                    { memberUserId: member.userId, role: oldRole, projectId },
+                    { memberUserId: member.userId, role: dto.role, projectId },
+                );
+            } catch (err) {
+                console.error('[ProjectsService] Failed to record activity for updateMemberRole:', err);
+            }
+        }
+
+        return {
+            id: saved.id,
+            userId: saved.userId,
+            email: member.user?.email ?? '',
+            fullName: member.user?.fullName ?? '',
+            role: saved.role,
+            createdAt: saved.joinedAt,
+        };
+    }
+
+    async removeMember(
+        projectId: string,
+        memberIdOrUserId: string,
+        requestingUserId?: string,
+    ): Promise<{ message: string }> {
+        const project = await this.projectsRepository.findOne({ where: { id: projectId } });
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+
+        const member = await this.projectMemberRepository.findOne({
+            where: [
+                { id: memberIdOrUserId, projectId },
+                { userId: memberIdOrUserId, projectId },
+            ],
+            relations: { user: true },
+        });
+
+        if (!member) {
+            throw new NotFoundException('Project member not found');
+        }
+
+        // Safety check: Cannot remove the only Project Admin
+        if (member.role === ProjectRole.PROJECT_ADMIN) {
+            const adminCount = await this.projectMemberRepository.count({
+                where: { projectId, role: ProjectRole.PROJECT_ADMIN },
+            });
+            if (adminCount <= 1) {
+                throw new BadRequestException(
+                    'Cannot remove the only Project Admin. A project must have at least one Project Admin.',
+                );
+            }
+        }
+
+        const removedUserId = member.userId;
+        const removedRole = member.role;
+
+        await this.projectMemberRepository.remove(member);
+
+        if (requestingUserId) {
+            try {
+                await this.activityLogService.recordActivity(
+                    null,
+                    requestingUserId,
+                    ActivityActionType.MEMBER_REMOVED,
+                    { memberUserId: removedUserId, role: removedRole, projectId },
+                    null,
+                );
+            } catch (err) {
+                console.error('[ProjectsService] Failed to record activity for removeMember:', err);
+            }
+        }
+
+        return { message: 'Member removed successfully' };
+    }
+
+    async getProjectMembers(projectId: string, userId: string): Promise<ProjectMemberResponse[]> {
         const project = await this.projectsRepository.findOne({ where: { id: projectId } });
         if (!project) {
             throw new NotFoundException('Project not found');
@@ -154,6 +317,7 @@ export class ProjectsService {
                 id: true,
                 role: true,
                 userId: true,
+                joinedAt: true,
                 user: {
                     id: true,
                     email: true,
@@ -162,11 +326,29 @@ export class ProjectsService {
             },
         });
 
+        // Consistent sorting: PROJECT_ADMIN first, then DEVELOPER, then VIEWER.
+        const rolePriority: Record<string, number> = {
+            [ProjectRole.PROJECT_ADMIN]: 1,
+            [ProjectRole.DEVELOPER]: 2,
+            [ProjectRole.VIEWER]: 3,
+        };
+
+        members.sort((a, b) => {
+            const pA = rolePriority[a.role] ?? 99;
+            const pB = rolePriority[b.role] ?? 99;
+            if (pA !== pB) return pA - pB;
+            const nameA = a.user?.fullName || a.user?.email || '';
+            const nameB = b.user?.fullName || b.user?.email || '';
+            return nameA.localeCompare(nameB);
+        });
+
         return members.map(m => ({
+            id: m.id,
             userId: m.userId,
             email: m.user?.email ?? '',
             fullName: m.user?.fullName ?? '',
             role: m.role,
+            createdAt: m.joinedAt,
         }));
     }
 }

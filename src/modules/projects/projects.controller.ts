@@ -7,6 +7,7 @@ import { ProjectRole } from '../project-members/entities/project-member.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
+import { UpdateProjectMemberDto } from './dto/update-project-member.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -60,8 +61,32 @@ export class ProjectsController {
     @Post(':id/members')
     @UseGuards(JwtAuthGuard, ProjectRoleGuard)
     @Roles(ProjectRole.PROJECT_ADMIN)
-    async addMember(@Param('id') projectId: string, @Body() dto: AddProjectMemberDto) {
-        return this.projectsService.addMember(projectId, dto);
+    async addMember(@Request() req: any, @Param('id') projectId: string, @Body() dto: AddProjectMemberDto) {
+        return this.projectsService.addMember(projectId, dto, req.user?.userId);
+    }
+
+    @Patch(':id/members/:memberId')
+    @UseGuards(JwtAuthGuard, ProjectRoleGuard)
+    @Roles(ProjectRole.PROJECT_ADMIN)
+    async updateMemberRole(
+        @Request() req: any,
+        @Param('id') projectId: string,
+        @Param('memberId') memberId: string,
+        @Body() dto: UpdateProjectMemberDto,
+    ) {
+        return this.projectsService.updateMemberRole(projectId, memberId, dto, req.user?.userId);
+    }
+
+    @Delete(':id/members/:memberId')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(JwtAuthGuard, ProjectRoleGuard)
+    @Roles(ProjectRole.PROJECT_ADMIN)
+    async removeMember(
+        @Request() req: any,
+        @Param('id') projectId: string,
+        @Param('memberId') memberId: string,
+    ) {
+        return this.projectsService.removeMember(projectId, memberId, req.user?.userId);
     }
 
     // ── Test route (can be removed in production) ─────────────────────────────

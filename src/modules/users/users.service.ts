@@ -54,4 +54,20 @@ export class UsersService {
         }
         return { id: user.id, email: user.email, fullName: user.fullName };
     }
+
+    async searchUsers(query?: string): Promise<{ id: string; email: string; fullName: string; avatarUrl: string | null }[]> {
+        const qb = this.userRepository.createQueryBuilder('user')
+            .select(['user.id', 'user.email', 'user.fullName', 'user.avatarUrl'])
+            .where('user.isActive = :isActive', { isActive: true });
+
+        if (query && query.trim()) {
+            const searchTerm = `%${query.trim().toLowerCase()}%`;
+            qb.andWhere('(LOWER(user.email) LIKE :search OR LOWER(user.fullName) LIKE :search)', { search: searchTerm });
+        }
+
+        qb.orderBy('user.fullName', 'ASC')
+          .limit(20);
+
+        return qb.getMany();
+    }
 }

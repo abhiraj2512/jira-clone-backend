@@ -30,6 +30,9 @@ export class IssuesService {
 
         const isMember = await this.projectMemberRepository.findOne({ where: { userId, projectId } });
         if (!isMember) throw new ForbiddenException('You are not a member of this project');
+        if (isMember.role === ProjectRole.VIEWER) {
+            throw new ForbiddenException('Viewers cannot create issues');
+        }
 
         if (dto.assigneeId) {
             const isAssigneeMember = await this.projectMemberRepository.findOne({
@@ -83,6 +86,9 @@ export class IssuesService {
             where: { userId, projectId: issue.projectId },
         });
         if (!isMember) throw new ForbiddenException('You are not a member of this project');
+        if (isMember.role === ProjectRole.VIEWER) {
+            throw new ForbiddenException('Viewers cannot update issues');
+        }
 
         if (dto.assigneeId) {
             const isAssigneeMember = await this.projectMemberRepository.findOne({
@@ -161,6 +167,9 @@ export class IssuesService {
             where: { userId, projectId: issue.projectId },
         });
         if (!isMember) throw new ForbiddenException('You are not a member of this project');
+        if (isMember.role === ProjectRole.VIEWER) {
+            throw new ForbiddenException('Viewers cannot change issue status');
+        }
 
         const allowedTransitions: Record<IssueStatus, IssueStatus[]> = {
             [IssueStatus.TODO]:        [IssueStatus.IN_PROGRESS],
@@ -249,7 +258,7 @@ export class IssuesService {
         // so this activity record will survive with issueId = null after deletion.
         await this.activityLogService.recordActivity(
             issueId, userId, ActivityActionType.ISSUE_DELETED,
-            { title: issue.title },
+            { title: issue.title, projectId: issue.projectId },
             null,
         );
 

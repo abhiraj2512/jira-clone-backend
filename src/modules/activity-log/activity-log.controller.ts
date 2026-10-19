@@ -14,4 +14,13 @@ export class ActivityLogController {
     ) {
         return this.activityLogService.getIssueActivity(req.user.userId, issueId);
     }
+
+    @Get('projects/:projectId/activity')
+    @UseGuards(JwtAuthGuard)
+    async getProjectActivity(
+        @Request() req: any,
+        @Param('projectId') projectId: string,
+    ) {
+        return this.activityLogService.getProjectActivity(req.user.userId, projectId);
+    }
 }
